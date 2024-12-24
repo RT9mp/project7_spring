@@ -130,7 +130,6 @@ public class EmergencyController {
         return "find"; // 검색 폼이 있는 페이지로 이동
     }
 
-
     @PostMapping("/find")
     public String getLogs(
             @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
