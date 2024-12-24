@@ -1,76 +1,74 @@
 package com.aivle.mini7.service;
 
-import com.aivle.mini7.client.dto.HospitalResponse;
-import com.aivle.mini7.dto.LogDto;
-import com.aivle.mini7.model.Log;
+import com.aivle.mini7.dto.EmergencyData;
+import com.aivle.mini7.dto.EmergencyResponse;
+import com.aivle.mini7.entity.Log;
+import com.aivle.mini7.entity.LogDetail;
+import com.aivle.mini7.repository.LogDetailRepository;
 import com.aivle.mini7.repository.LogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 @Transactional
-@RequiredArgsConstructor
-@Slf4j
 public class LogService {
 
     private final LogRepository logRepository;
+    private final LogDetailRepository logDetailRepository;
 
-    @Transactional(readOnly = true)
-    public Page<LogDto.ResponseList> getLogList(Pageable pageable) {
-        Page<Log> logs = logRepository.findAll(pageable);
+    public void saveLogWithDetails(EmergencyResponse response) {
+        // 1. Log 저장
+        Log log = new Log();
+        log.setDatetime(new Date());
+        log.setInputText(response.getText());
+        log.setInputLatitude(response.getStart_lat());
+        log.setInputLongitude(response.getStart_lng());
+        log.setEmClass(response.getGrade());
+        log.setTotalHospitals(response.getEmergency_data().size());
+        logRepository.save(log);
 
-        return logs.map(LogDto.ResponseList::of);
+        // 2. LogDetail 저장
+        for (EmergencyData data : response.getEmergency_data()) {
+            LogDetail logDetail = getLogDetail(data, log);
+            logDetailRepository.save(logDetail);
+        }
     }
 
-    /**
-     * 원래 이렇게 나쁜 모듈로 구현하면 안된다.
-     * 현재 프로젝트 완료를 위해 급급한 소스이다.
-     * @param hospitalResponseList
-     * @param request
-     * @param latitude
-     * @param longitude
-     */
-    public void saveLog(List<HospitalResponse> hospitalResponseList, String request, double latitude, double longitude, int emClass) {
-        Log hospitalLog = Log.builder()
-                .inputText(request)
-                .inputLatitude(latitude)
-                .inputLongitude(longitude)
-                .emClass(emClass)
-                .datetime(String.valueOf(new Date()))
-                .build();
-        int count = 1;
-        for(HospitalResponse hospitalResponse : hospitalResponseList) {
-            log.info("hospitalResponse: {}", hospitalResponse);
-            switch (count) {
-                case 1:
-                    hospitalLog.setHospital1(hospitalResponse.getHospitalName());
-                    hospitalLog.setAddr1(hospitalResponse.getAddress());
-                    hospitalLog.setTel1(hospitalResponse.getPhoneNumber1());
-                    break;
-                case 2:
-                    hospitalLog.setHospital2(hospitalResponse.getHospitalName());
-                    hospitalLog.setAddr2(hospitalResponse.getAddress());
-                    hospitalLog.setTel2(hospitalResponse.getPhoneNumber1());
-                    break;
-                case 3:
-                    hospitalLog.setHospital3(hospitalResponse.getHospitalName());
-                    hospitalLog.setAddr3(hospitalResponse.getAddress());
-                    hospitalLog.setTel3(hospitalResponse.getPhoneNumber1());
-                    break;
-            }
-            count++;
+    private static LogDetail getLogDetail(EmergencyData data, Log log) {
+        LogDetail logDetail = new LogDetail();
+        logDetail.setLog(log);
+        logDetail.setHospitalName(data.getHospitalName());
+        logDetail.setAddress(data.getAddress());
+        logDetail.setEmergencyType(data.getEmergencyMedicalInstitutionType());
+        logDetail.setPhoneNumber1(data.getPhoneNumber1());
+        logDetail.setPhoneNumber3(data.getPhoneNumber3());
+        logDetail.setLatitude(data.getLatitude());
+        logDetail.setLongitude(data.getLongitude());
+        logDetail.setDistance(data.getDistance());
+        return logDetail;
+    }
 
-        }
+    public Page<Log> getLogs(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return logRepository.findAll(pageable);
+    }
 
-        logRepository.save(hospitalLog);
+    public Page<Log> getLogsByDateRange(LocalDate startDate, LocalDate endDate, int page, int size) {
+        Date startDatetime = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDatetime = Date.from(endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return logRepository.findByDatetimeBetween(startDatetime, endDatetime, pageable);
     }
 
 }

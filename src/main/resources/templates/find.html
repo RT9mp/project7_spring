@@ -1,10 +1,240 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>응급실 로그</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9f7fd; /* 연한 파란색 배경 */
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            text-align: center;
+            color: #007bff; /* 진한 파란색 */
+            margin-bottom: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative; /* 컨테이너의 상대적 위치 */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* 고정된 테이블 레이아웃 */
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+            word-wrap: break-word; /* 텍스트 줄바꿈 */
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        td {
+            background-color: #fff;
+        }
+
+        .hospital-info {
+            max-height: 150px; /* 고정 높이 설정 */
+            overflow-y: auto; /* 스크롤 추가 */
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .hospital-info ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .hospital-info li {
+            margin-bottom: 10px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            margin: 0 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #0056b3;
+        }
+
+        .pagination a.disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            margin: 0 5px;
+            padding: 10px 15px;
+            color: #555;
+        }
+
+        .home {
+            background-color: #28a745 !important;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .home:hover {
+            background-color: #218838 !important;
+        }
+
+        /* 우측 상단 위치에 날짜 검색 폼을 배치 */
+        .search-form {
+            position: absolute;
+            top: 55px;
+            right: 25px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-form input[type="date"] {
+            width: 100px; /* 고정 크기 설정 */
+            margin-right: 10px;
+        }
+
+        .search-form label {
+            margin-right: 5px;
+        }
+
+        .search-form button {
+            padding: 8px 20px; /* 버튼 크기 늘리기 */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: auto; /* width를 auto로 설정하여 텍스트에 맞게 크기 조절 */
+        }
+
+        .search-form button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
 </head>
 <body>
-$END$
+
+<div class="container">
+    <h1>응급실 로그</h1>
+
+    <!-- 우측 상단 날짜 검색 폼 -->
+    <form method="post" action="/find" class="search-form">
+        <label for="start">시작 날짜</label>
+        <input type="date" id="start" name="start" th:value="${startDate}" required onchange="setMinEndDate()">
+
+        <label for="end">종료 날짜</label>
+        <input type="date" id="end" name="end" th:value="${endDate}" required onchange="setMaxStartDate()">
+
+        <button type="submit">검색</button>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 10%;">시간</th>
+            <th style="width: 30%;">입력 텍스트</th>
+            <th style="width: 10%;">추천 병원 개수</th>
+            <th style="width: 50%;">병원 정보</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="log : ${logs.content}">
+            <td th:text="${log.datetime}"></td>
+            <td th:text="${log.inputText}"></td>
+            <td th:text="${log.totalHospitals}"></td>
+            <td>
+                <div class="hospital-info">
+                    <ul>
+                        <li th:each="detail : ${log.logDetails}">
+                            <p><strong>병원명:</strong> <span th:text="${detail.hospitalName}"></span></p>
+                            <p><strong>주소:</strong> <span th:text="${detail.address}"></span></p>
+                            <p><strong>긴급 유형:</strong> <span th:text="${detail.emergencyType}"></span></p>
+                            <p><strong>전화번호:</strong> <span th:text="${detail.phoneNumber1}"></span>, <span
+                                    th:text="${detail.phoneNumber3}"></span></p>
+                            <p><strong>위치:</strong> <span th:text="${detail.latitude}"></span>, <span
+                                    th:text="${detail.longitude}"></span></p>
+                            <p><strong>거리:</strong> <span th:text="${detail.distance}"></span></p><br>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="pagination">
+    <span>
+        <a th:href="@{/}" class="home">홈</a>
+    </span>
+
+        <span th:if="${logs.content.size() > 0}">
+        <span th:if="${currentPage > 0}">
+            <a th:href="@{/find(start=${startDate}, end=${endDate}, page=${currentPage - 1})}" class="prev">이전</a>
+        </span>
+        <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a th:href="@{/find(start=${startDate}, end=${endDate}, page=${i})}" th:text="${i + 1}"
+               th:classappend="${i == currentPage ? 'disabled' : ''}"></a>
+        </span>
+        <span th:if="${currentPage < totalPages - 1}">
+            <a th:href="@{/find(start=${startDate}, end=${endDate}, page=${currentPage + 1})}" class="next">다음</a>
+        </span>
+    </span>
+    </div>
+
+</div>
+
+<script>
+    // 시작 날짜 선택 시 종료 날짜의 최소값을 설정
+    function setMinEndDate() {
+        const startDate = document.getElementById("start").value;
+        document.getElementById("end").setAttribute("min", startDate);
+    }
+
+    // 종료 날짜 선택 시 시작 날짜의 최대값을 설정
+    function setMaxStartDate() {
+        const endDate = document.getElementById("end").value;
+        document.getElementById("start").setAttribute("max", endDate);
+    }
+</script>
+
 </body>
 </html>

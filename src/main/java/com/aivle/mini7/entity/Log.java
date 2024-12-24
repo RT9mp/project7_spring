@@ -1,60 +1,37 @@
-package com.aivle.mini7.model;
+package com.aivle.mini7.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Entity
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Table(name = "log")
 public class Log {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long logId;
 
-    @Column(nullable = false)
-    private String datetime;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date datetime;
 
-    @Column(name = "input_text", nullable = false)
     private String inputText;
-
-    @Column(name = "input_latitude", nullable = false)
     private Double inputLatitude;
-
-    @Column(name = "input_longitude", nullable = false)
     private Double inputLongitude;
+    private int emClass;
+    private Integer totalHospitals;
 
-    @Column(name = "em_class", nullable = false)
-    private Integer emClass;
+    @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<LogDetail> logDetails = new ArrayList<>();
 
-    @Column(nullable = false)
-    private String hospital1;
 
-    @Column(nullable = false)
-    private String addr1;
-
-    @Column(nullable = false)
-    private String tel1;
-
-    @Column(nullable = false)
-    private String hospital2;
-
-    @Column(nullable = false)
-    private String addr2;
-
-    @Column(nullable = false)
-    private String tel2;
-
-    @Column(nullable = false)
-    private String hospital3;
-
-    @Column(nullable = false)
-    private String addr3;
-
-    @Column(nullable = false)
-    private String tel3;
 }
