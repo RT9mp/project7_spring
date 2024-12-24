@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>응급실 로그</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9f7fd; /* 연한 파란색 배경 */
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff; /* 진한 파란색 */
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center; /* 중앙 정렬 */
+            border: 1px solid #000; /* 검은색 구분줄 추가 */
+        }
+
+        th {
+            background-color: #007bff; /* 진한 파란색 */
+            color: white;
+        }
+
+        td {
+            background-color: #fff; /* 흰색 배경 */
+        }
+
+        td ul {
+            padding-left: 20px;
+        }
+
+        td p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        td p strong {
+            color: #555; /* 어두운 글씨 색상 */
+        }
+
+        .hospital-info {
+            max-height: 200px; /* 최대 높이를 설정 */
+            overflow-y: auto; /* 세로 스크롤을 추가 */
+            text-align: left; /* 병원 정보 내용 왼쪽 정렬 */
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            margin: 0 5px;
+            padding: 10px 15px;
+            background-color: #007bff; /* 진한 파란색 */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #0056b3; /* 어두운 파란색 */
+        }
+
+        .pagination a.disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            margin: 0 5px;
+            padding: 10px 15px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<h1>응급실 로그</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>로그 ID</th>
+        <th>입력 텍스트</th>
+        <th>추천 병원 개수</th>
+        <th>병원 정보</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 로그 목록 출력 -->
+    <tr th:each="log : ${logs.content}">
+        <td th:text="${log.logId}"></td>
+        <td th:text="${log.inputText}"></td>
+        <td th:text="${log.totalHospitals}"></td>
+        <td>
+            <div class="hospital-info">
+                <ul>
+                    <!-- 해당 로그에 연결된 모든 LogDetail 출력 -->
+                    <li th:each="detail : ${log.logDetails}">
+                        <p><strong>병원명:</strong> <span th:text="${detail.hospitalName}"></span></p>
+                        <p><strong>주소:</strong> <span th:text="${detail.address}"></span></p>
+                        <p><strong>긴급 유형:</strong> <span th:text="${detail.emergencyType}"></span></p>
+                        <p><strong>전화번호:</strong> <span th:text="${detail.phoneNumber1}"></span>, <span th:text="${detail.phoneNumber3}"></span></p>
+                        <p><strong>위치:</strong> <span th:text="${detail.latitude}"></span>, <span th:text="${detail.longitude}"></span></p>
+                        <p><strong>거리:</strong> <span th:text="${detail.distance}"></span></p>
+                    </li>
+                </ul>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- 페이지 네비게이션 -->
+<div class="pagination">
+    <span th:if="${currentPage > 0}">
+        <a th:href="@{/admin(page=${currentPage - 1})}" class="prev">이전</a>
+    </span>
+    <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+        <a th:href="@{/admin(page=${i})}" th:text="${i + 1}" th:classappend="${i == currentPage ? 'disabled' : ''}"></a>
+    </span>
+    <span th:if="${currentPage < totalPages - 1}">
+        <a th:href="@{/admin(page=${currentPage + 1})}" class="next">다음</a>
+    </span>
+</div>
+
+</body>
+</html>

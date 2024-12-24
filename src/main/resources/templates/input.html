@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>응급실 추천</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e9f7fd; /* 연한 파란색 배경 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 400px; /* 가로 너비 증가 */
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      color: #007bff; /* 진한 파란색 */
+      margin-bottom: 20px; /* 아래 여백 추가 */
+    }
+
+    label {
+      margin: 10px 0 5px;
+      display: block;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px; /* 아래 여백 조정 */
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      border-color: #007bff; /* 포커스 시 테두리 색상 변경 */
+      outline: none; /* 기본 아웃라인 제거 */
+    }
+
+    input[type="submit"],
+    #getLocation {
+      background-color: #007bff; /* 버튼 배경 색상 */
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px; /* 위쪽 여백 추가 */
+    }
+
+    input[type="submit"]:hover,
+    #getLocation:hover {
+      background-color: #0056b3; /* 버튼 호버 색상 */
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>응급실 추천</h1>
+  <form method="post">
+    <label for="text">증상:</label>
+    <textarea id="text" name="text" rows="3" required placeholder="머리에 통증이 있습니다.">머리에 통증이 있습니다.</textarea>
+
+    <label for="startLat">위도:</label>
+    <input type="number" step="any" id="startLat" name="startLat" required></input>
+
+    <label for="startLng">경도:</label>
+    <input type="number" step="any" id="startLng" name="startLng" required></input>
+
+    <label for="outputCount">출력 개수:</label>
+    <input type="number" id="outputCount" name="outputCount" required value="3"></input>
+
+    <input type="submit" value="제출">
+  </form>
+  <button id="getLocation" style="margin-top: 10px;">현재 위치 가져오기</button>
+</div>
+
+<script>
+  document.getElementById('getLocation').addEventListener('click', function() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        document.getElementById('startLat').value = position.coords.latitude;
+        document.getElementById('startLng').value = position.coords.longitude;
+      }, function() {
+        alert('위치 정보를 가져오는 데 실패했습니다.');
+      });
+    } else {
+      alert('이 브라우저는 Geolocation을 지원하지 않습니다.');
+    }
+  });
+</script>
+</body>
+</html>
